@@ -1,3 +1,5 @@
+License CC BY-NC-SA
+
 # Closure-phases
 
 First generate a bubble field with ipython (for a periodic 2D field with 512x512 pixels, with 20 bubbles of radius 20 pixels, allowed to overlap):
