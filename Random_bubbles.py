@@ -28,8 +28,8 @@ class RandomBubbles:
     def __init__(self, DIM=512, nb=20, radius=20., NDIM = 2, nooverlap = False, periodic=True):
         """
         Initialise a DIM ^ NDIM box with random bubbles until given number of bubbles (nb) has been reached
-	If 'periodic = True', the box had periodic boundary conditions
-	If 'nooverlap = True', bubbles are not allowed to overlap (expect a long computing time if you have a large filling fraction)
+    If 'periodic = True', the box had periodic boundary conditions
+    If 'nooverlap = True', bubbles are not allowed to overlap (expect a long computing time if you have a large filling fraction)
         """
         
         self.NDIM = NDIM  #number of dimensions e.g. 2D or 3D
@@ -112,11 +112,11 @@ class RandomBubbles:
             bmask = self.bubble_mask(x, R)
             test=0
             if self.nooverlap:
-		#check for overlaps
+        #check for overlaps
                 if np.any(self.box[bmask.astype(np.bool)]):
                     continue
 
-	    #add bubble to whole box
+        #add bubble to whole box
             self.box=np.add(self.box,bmask).astype(np.bool)
             self.box=self.box.astype(int)
 
@@ -124,13 +124,13 @@ class RandomBubbles:
             self.bubbles.append(x)
 
             count=count+1
-	
+    
             if count % 100 == 0:
                 print('For %i bubbles, xhII = %.2f \n' %(count, self.box.mean())) #keeps track of process
 
         self.summary()
 
-	
+    
     def bubble_mask(self, x, R):
         #wrapper to handle different dimensionality
         if (self.NDIM == 2):
@@ -140,9 +140,9 @@ class RandomBubbles:
         else:
             raise Exception ("NDIM is not 2 or 3")
 
-	
+    
     def disk_mask(self, pos, R):
-	#generates mask corresponding to a 2D ionised disk
+    #generates mask corresponding to a 2D ionised disk
         #pos is coordinates of the centre of the bubble
         #R is its radius
 
@@ -166,7 +166,7 @@ class RandomBubbles:
         ymin=max(ymov[0],0)
         ymax=min(ymov[1],self.DIM)
 
-	#periodic boundary conditions
+    #periodic boundary conditions
         if self.periodic:
             if (xmov[0]<0):
                 extra_struct=struct[0:abs(xmov[0]),abs(min(0,ymov[0])):min(structsize,self.DIM-ymov[0])]
@@ -190,7 +190,7 @@ class RandomBubbles:
 
 
     def sphere_mask(self, pos, R):
-	#generates mask corresponding to a 3D ionised sphere
+    #generates mask corresponding to a 3D ionised sphere
         #pos is coordinates of the centre of the bubble
         #R is its radius
 
@@ -217,7 +217,7 @@ class RandomBubbles:
         zmin=max(zmov[0],0)
         zmax=min(zmov[1],self.DIM)
 
-	#periodic boundary conditions
+    #periodic boundary conditions
         if self.periodic:
             if (xmov[0]<0):
                 extra_struct=struct[0:abs(xmov[0]),abs(min(0,ymov[0])):min(structsize,self.DIM-ymov[0]),abs(min(0,zmov[0])):min(structsize,self.DIM-zmov[0])]
@@ -238,7 +238,7 @@ class RandomBubbles:
                 extra_struct=struct[abs(min(0,xmov[0])):min(structsize,structsize+self.DIM-xmov[1]),abs(min(0,ymov[0])):min(structsize,structsize+self.DIM-ymov[1]),structsize-(zmov[1]-self.DIM):structsize]
                 full_struct[xmin:xmax,ymin:ymax,0:zmov[1]-self.DIM]=np.add(full_struct[xmin:xmax,ymin:ymax,0:zmov[1]-self.DIM],extra_struct)
         
-	#truncated struct if some part is outside the full struct
+    #truncated struct if some part is outside the full struct
         small_struct=struct[abs(xmov[0]-xmin):structsize-abs(xmov[1]-xmax), abs(ymov[0]-ymin):structsize-abs(ymov[1]-ymax),abs(zmov[0]-zmin):structsize-abs(zmov[1]-zmax)]
         #add to full box
         full_struct[xmin:xmax,ymin:ymax,zmin:zmax] = np.add(full_struct[xmin:xmax,ymin:ymax,zmin:zmax],small_struct) 
@@ -253,28 +253,28 @@ class RandomBubbles:
         rfilechain='Field_'+str(self.nb)+'binary_bubbles_nooverlap='+str(self.nooverlap)+'_radius='+str(self.radius)+'_xhII'+str(self.xhII)+'_N'+str(self.DIM)+'_'+str(self.NDIM)+'D_realpart.txt'
         ifilechain='Field_'+str(self.nb)+'binary_bubbles_nooverlap='+str(self.nooverlap)+'_radius='+str(self.radius)+'_xhII'+str(self.xhII)+'_N'+str(self.DIM)+'_'+str(self.NDIM)+'D_imagpart.txt'
         
-	if self.NDIM==3:
-            field_k=np.fft.fftn(self.box,axes=(0,1,2))
-            out_real=np.real(field_k[:,:,0])
-            for i in range(1,self.DIM):
-                out_real=np.r_[out_real,np.real(field_k[:,:,i])]
-            np.savetxt(rfilechain,out_real,delimiter=' ',fmt='%-10.4f')
-            out_imag=np.imag(field_k[:,:,0])
-            for i in range(1,self.DIM):
-                out_imag=np.r_[out_imag,np.imag(field_k[:,:,i])]
-            np.savetxt(ifilechain,out_imag,delimiter=' ',fmt='%-10.4f')
+        if self.NDIM==3:
+                field_k=np.fft.fftn(self.box,axes=(0,1,2))
+                out_real=np.real(field_k[:,:,0])
+                for i in range(1,self.DIM):
+                    out_real=np.r_[out_real,np.real(field_k[:,:,i])]
+                np.savetxt(rfilechain,out_real,delimiter=' ',fmt='%-10.4f')
+                out_imag=np.imag(field_k[:,:,0])
+                for i in range(1,self.DIM):
+                    out_imag=np.r_[out_imag,np.imag(field_k[:,:,i])]
+                np.savetxt(ifilechain,out_imag,delimiter=' ',fmt='%-10.4f')
 
         elif self.NDIM==2:
-            field_k=np.fft.fftn(self.box,axes=(0,1))
-            out_real=np.real(field_k)
-            out_imag=np.imag(field_k)
-            np.savetxt(rfilechain,out_real,delimiter=' ',fmt='%-10.4f')
-            np.savetxt(ifilechain,out_imag,delimiter=' ',fmt='%-10.4f')
+                field_k=np.fft.fftn(self.box,axes=(0,1))
+                out_real=np.real(field_k)
+                out_imag=np.imag(field_k)
+                np.savetxt(rfilechain,out_real,delimiter=' ',fmt='%-10.4f')
+                np.savetxt(ifilechain,out_imag,delimiter=' ',fmt='%-10.4f')
 
 
     def write_ionisation_field(self):
         """ Writes field in one textfile and list of bubble locations in another"""
-	
+    
         filechain='Field_'+str(self.nb)+'binary_bubbles_nooverlap='+str(self.nooverlap)+'_radius='+str(self.radius)+'_xhII'+str(self.xhII)+'_N'+str(self.DIM)+'_'+str(self.NDIM)+'D.txt'
         filechain2='Field_'+str(self.nb)+'binary_bubbles_nooverlap='+str(self.nooverlap)+'_radius='+str(self.radius)+'_xhII'+str(self.xhII)+'_N'+str(self.DIM)+'_'+str(self.NDIM)+'D_bubble_loc.txt'
         if self.NDIM==3:
