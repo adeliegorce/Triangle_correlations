@@ -33,11 +33,13 @@ using namespace std;
 const double pi=3.141592653589793;
 const double s3=sqrt(3.0);
 const int N=SIZE; //sampling number
-const int NDIM=2; //dimension of the box
 const double L=LENGTH; //length of the realspace box
 // const int nthreads = NTHREADS; //number of threads for parallelisation
 
-static int total=0;
+const int NDIM=2; //dimension of the box
+static int nbins=100; //number of bins for correlation scales
+static double rmin=1., rmax=30.; //min and max value of correlation scales probed 
+static int nmodes=0; //number of modes contributing to each probed scale r
 
 /* VERSION THAT DOES NOT COMPUTE THE IMAGINARY PART OF THE TRIANGLE CORRELATION FUNCTION */
 
@@ -155,17 +157,16 @@ complex<double> sum_sigma(double r) {
         }
     }
     int ksize=u;
-    total+=ksize;
-    cout << ksize << " / " <<flush;
 
-    // omp_set_num_threads(nthreads);
-    // #pragma omp parallel 
-    // {
+    nmodes=0;
+    omp_set_num_threads(nthreads);
+    #pragma omp parallel 
+    {
 
     double norm_k=0, norm_q=0;
     vector<double> k(NDIM), q(NDIM);
 
-    // #pragma omp for reduction (+: sigma_real)
+    #pragma omp for reduction (+: sigma_real, nmodes)
     for (int i=0; i<ksize; i++) {
         for (int j=0; j<ksize; j++) {
             if ( k_norm[i]<= pi/r
@@ -175,13 +176,13 @@ complex<double> sum_sigma(double r) {
                 sigma_real+= real(add_sigma(k_ind[i][1],k_ind[i][0],k_ind[j][0],k_ind[j][1],r));
                 sigma_real+= real(add_sigma(k_ind[i][0],k_ind[i][1],k_ind[j][1],k_ind[j][0],r));
                 sigma_real+= real(add_sigma(k_ind[i][1],k_ind[i][0],k_ind[j][1],k_ind[j][0],r));
+                nmodes += int(4*16);
             }
         }
     }
-    
     sigma_imag=0;
 	    
-    // }//end of parallelisation
+    } //end of parallelisation
 
     complex<double> sigma=complex<double>(sigma_real,sigma_imag);
 
@@ -196,8 +197,6 @@ int main() {
 
     string file=string(filename_box)+string(".txt");
 
-    // double *field;
-    // field = (double*)fftw_malloc(sizeof(double) * (N) * (N));
     fftw_complex *field;
     field = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * (N) * (N));
 
@@ -212,7 +211,6 @@ int main() {
             field[i + N * j][1]=0;
             cout << field[i + N * j][0] <<flush;
         }
-        // cout << " " <<endl;
     }
 
     cout << "Done reading file, computing FFT" <<endl;
@@ -224,12 +222,9 @@ int main() {
 
     fftw_plan p;
     p = fftw_plan_dft_2d(N, N, field, field_k, FFTW_FORWARD, FFTW_ESTIMATE);
-    // p = fftw_plan_dft_r2c_2d(N, N, field, field_k, FFTW_ESTIMATE);
     fftw_execute(p);
 
-    // cout << field_k[0 + N * 0][0] << " " << field_k[0 + N * 0][1] <<endl;
-    // cout << field_k[12 + N * 35][0] << " " << field_k[12 + N * 35][1] <<endl;
-
+    // check
     cout << field_k[12 + N * 12][0] << " " << field_k[12 + N * 12][1] <<endl;
     cout << field_k[(N-12) + N * (N-12)][0] << " " << field_k[(N-12) + N * (N-12)][1] <<endl;
     double abs=0;
@@ -241,41 +236,26 @@ int main() {
         }
     }
 
-    // cout << epsilon_k[49][49] <<endl;
-
     string outfilename = string(filename_box)+string("_L")+to_string(int(L))+string("_spherical_correlations.txt");
     ofstream outfile;
     outfile.open(outfilename);
     outfile << "# dim " << N << endl;
-    outfile << "# r Re[s(r)] Im[s(r)]" <<endl;
+    outfile << "# r Re[s(r)] Im[s(r)] N_modes" <<endl;
 
-    int nbins=10;
-    vector<double> r=range(0.5,50.,nbins);
+    vector<double> r=range(rmin,rmax,nbins);
     auto start = chrono::steady_clock::now();
-    //complex<double> l(0,0);]
     cout << " r / size of k array / s(r)"  <<endl;
     for (int i=0; i<nbins; i++) {
         cout << r[i] << " / " <<flush;
         complex<double> l=sum_sigma(r[i]);
-        outfile << r[i] << " " << real(l) << " " << imag(l) <<endl;//<< real(l) << " " << imag(l) <<endl;
-        cout << l << "     " <<endl;
+        outfile << r[i] << " " << real(l) << " " << imag(l) << " " << nmodes << endl;//<< real(l) << " " << imag(l) <<endl;
+        cout << l << " " << nmodes <<endl;
     }
     outfile.close();
 
-    cout << "Total number of steps: " << total<<endl;
     auto end = chrono::steady_clock::now();
     auto howlong = end - start;
     cout << "Executing time: " << chrono::duration <double> (howlong).count()/60 << "min" <<endl;
-
-    ofstream arrayfile;
-    arrayfile.open("array_sizes.txt",fstream::app);
-    arrayfile << "NDIM=" << NDIM << " N=" << N << " L=" << L<< " total ksize = " << total <<endl;
-    arrayfile.close();
-
-    // ofstream timefile;
-    // timefile.open("executing_times.txt", fstream::app);
-    // timefile << "NDIM=" << NDIM << " N=" << N << " L=" << L << " threads: " << nthreads << " time = " << chrono::duration <double> (howlong).count()/60 << "min" <<endl;
-    // timefile.close();
     
     // fftw_destroy_plan(p);
     fftw_free(field);
