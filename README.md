@@ -19,4 +19,4 @@ g++ -std=c++11 -fopenmp -DSIZE=512 -DLENGTH=400 -DNTHREADS=20 -Dfilename=\"Field
     
 Run the executable:  ./SC.o
 
-The output will be a textfile with the r considered (hard coded, in Mpc), the real part and the imaginary part of the TCF for each r.
+The output will be a textfile with the r considered (hard coded, in Mpc), the real part and the imaginary part of the TCF for each r, and the number of modes used to compute the TCF for each r.
