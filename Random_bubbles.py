@@ -8,17 +8,10 @@
 
 import numpy as np
 import numpy.random as npr
-from scipy import ndimage
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-from math import sqrt, pi
-import os
-import sys, getopt
-import time 
-import pylab as pl
+import os,sys
 from mpl_toolkits.axes_grid1 import ImageGrid
-from astropy.io import ascii
-from astropy.table import Table, Column
 
 class RandomBubbles:
     """
@@ -39,8 +32,8 @@ class RandomBubbles:
         self.nb= int(nb) #Number of bubbles in the box
         self.radius=radius #Radius (in pixels) of all bubbles in the box
 
-        print("initialising a %iD box with %i cells and %i bubbles of radius %i" %(self.NDIM, self.DIM, self.nb,self.radius))
-        print("periodicity and nooverlap are (%i,%i)" %(periodic, nooverlap))
+        print("Initialising a %iD box with %i cells and %i bubbles of radius %i" %(self.NDIM, self.DIM, self.nb,self.radius))
+        print("Overlap and periodicity are (%s,%s)" %(np.bool(~nooverlap),periodic))
 
         if self.NDIM == 2:
             self.box = np.zeros([DIM, DIM])
@@ -62,8 +55,8 @@ class RandomBubbles:
 
         self.box[self.box>1.]=1. #avoid pixel value to exceed 1 in overlap zones (pixel value <-> ionisation level)
         
-        print("Number of bubbles in=", len(self.bubbles))
-        print("Box mean = ", self.box.mean())
+        # print("Number of bubbles in=", len(self.bubbles))
+        print("\nBox mean = %.4f" %(np.mean(self.box)))
 
         #Show the slice
         plt.ion()
@@ -87,7 +80,7 @@ class RandomBubbles:
                         share_all = "False",
                         )
             img0=grid[0].imshow(self.box[:,n,:],cmap=cmap)
-            img1=grid[1].imshow(self.box[:,int(n+0.1*n),:],cmap=cmap)
+            img1=grid[1].imshow(self.box[:,int(1.1*n),:],cmap=cmap)
             img2=grid[2].imshow(self.box[n,:,:],cmap=cmap)
             img3=grid[3].imshow(self.box[:,:,n],cmap=cmap)
 
@@ -101,7 +94,7 @@ class RandomBubbles:
 
         R=self.radius
 
-        count=0
+        count=10
 
         while (count < target):
 
@@ -123,10 +116,9 @@ class RandomBubbles:
             #Store bubble locations
             self.bubbles.append(x)
 
-            count=count+1
-    
-            if count % 100 == 0:
-                print('For %i bubbles, xhII = %.2f \n' %(count, self.box.mean())) #keeps track of process
+            if (len(bubbles)/self.nb*100 > count):
+                self.loading_verbose(count)
+                count=count+10
 
         self.summary()
 
@@ -289,3 +281,7 @@ class RandomBubbles:
             np.savetxt(filechain,self.box,delimiter=' ',fmt='%-10.4f')
             np.savetxt(filechain2,np.array(self.bubbles),delimiter=' ',fmt='%i')
 
+    def loading_verbose(self,perc):
+        msg = str('%i bubbles, f = %.4f, %i%% done' %(len(self.bubbles),self.box.mean(),perc))
+        sys.stdout.write('\r'+msg)
+        sys.stdout.flush()
