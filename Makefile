@@ -1,6 +1,6 @@
 LDFLAGS= -lfftw3f_omp -lfftw3f -lm -L/usr/local/lib
 CPPFLAGS=-I/usr/local/include/
-CC=/usr/local/bin/g++-8 -std=c++11 -fopenmp
+CC=g++ -std=c++11 -fopenmp
 
 2d: Spherical_correlations2d.cpp 
 	$(CC) $(CPPFLAGS) -o ./SC_2d.o ./Spherical_correlations2d.cpp  $(LDFLAGS)
