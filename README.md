@@ -2,6 +2,11 @@ License CC BY-NC-SA
 
 # Closure-phases
 
+Package to generate an ionisation field in 2D or 3D and then compute its triangle correlations (ref https://arxiv.org/abs/1903.11402).
+Requires FFTW and OPENMP libraries.
+
+
+
 First generate a bubble field with ipython (for a periodic 2D field with 512x512 pixels, with bubbles of radius 20 pixels, to reach a given filling fraction, allowed to overlap):
 
 from Random_bubbles import *
