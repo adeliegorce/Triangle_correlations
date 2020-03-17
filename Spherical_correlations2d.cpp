@@ -10,36 +10,13 @@
  of matter field in 2D box
  */
 
-#include <vector>
-#include <math.h>
-// #include <omp.h>
-#include <algorithm>
+#include "SC.h"
 using namespace std;
-#include <iostream>
-#include <complex.h>
-#include <fstream>
-#include <string>
-#include <stdio.h>
-#include <stdlib.h>
-#include <chrono>
-#include <fftw3.h>
 
-#ifndef LENGTH
-#define LENGTH SIZE
-#endif
-// #ifndef NTHREADS
-// #define NTHREADS 10
-// #endif
-const double pi=3.141592653589793;
-const double s3=sqrt(3.0);
-const int N=SIZE; //sampling number
-const double L=LENGTH; //length of the realspace box
-// const int nthreads = NTHREADS; //number of threads for parallelisation
-
-const int NDIM=2; //dimension of the box
-static int nbins=100; //number of bins for correlation scales
-static double rmin=1., rmax=30.; //min and max value of correlation scales probed 
-static int nmodes=0; //number of modes contributing to each probed scale r
+static const int NDIM = 2; //dimension of the box
+static int nmodes = 0; //number of modes contributing to each probed scale r
+fftwf_complex *field, *field_k;
+fftwf_plan p;
 
 /* VERSION THAT DOES NOT COMPUTE THE IMAGINARY PART OF THE TRIANGLE CORRELATION FUNCTION */
 
@@ -193,12 +170,13 @@ complex<double> sum_sigma(double r) {
 
 int main() {
 
-    cout << "Dim in Fourier space " << N << " ; real space length " << L << endl;//" ; number of threads " << nthreads <<endl; 
+
+    cout << "Dim in Fourier space " << N << " ; real space length " << L << " ; number of threads " << nthreads <<endl; 
 
     string file=string(filename_box)+string(".txt");
 
-    fftw_complex *field;
-    field = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * (N) * (N));
+    field = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * (N) * (N));
+    field_k = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * N * (N));
 
     //Reading field files
     ifstream field_file ;
@@ -209,20 +187,14 @@ int main() {
         for (int j=0; j<N; j++) {
             field_file >> field[i + N * j][0];
             field[i + N * j][1]=0;
-            cout << field[i + N * j][0] <<flush;
+            // cout << field[i + N * j][0] <<flush;
         }
     }
-
     cout << "Done reading file, computing FFT" <<endl;
     field_file.close();
 
-
-    fftw_complex *field_k;
-    field_k = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N * (N));
-
-    fftw_plan p;
-    p = fftw_plan_dft_2d(N, N, field, field_k, FFTW_FORWARD, FFTW_ESTIMATE);
-    fftw_execute(p);
+    p = fftwf_plan_dft_2d(N, N, field, field_k, FFTW_FORWARD, FFTW_ESTIMATE);
+    fftwf_execute(p);
 
     // check
     cout << field_k[12 + N * 12][0] << " " << field_k[12 + N * 12][1] <<endl;
@@ -244,7 +216,7 @@ int main() {
 
     vector<double> r=range(rmin,rmax,nbins);
     auto start = chrono::steady_clock::now();
-    cout << " r / size of k array / s(r)"  <<endl;
+    cout << " r / s(r) / Nmodes"  <<endl;
     for (int i=0; i<nbins; i++) {
         cout << r[i] << " / " <<flush;
         complex<double> l=sum_sigma(r[i]);
@@ -257,9 +229,9 @@ int main() {
     auto howlong = end - start;
     cout << "Executing time: " << chrono::duration <double> (howlong).count()/60 << "min" <<endl;
     
-    // fftw_destroy_plan(p);
-    fftw_free(field);
-    fftw_free(field_k);
+    // fftwf_destroy_plan(p);
+    fftwf_free(field);
+    fftwf_free(field_k);
 
     return 0;
 
