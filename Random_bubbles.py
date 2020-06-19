@@ -10,7 +10,7 @@ import numpy as np
 import numpy.random as npr
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-import sys
+import sys, pickle
 
 class RandomBubbles:
     """
@@ -65,19 +65,18 @@ class RandomBubbles:
         self.nb=len(self.bubbles)
         self.xhII=self.box.mean()
 
-        n=int(self.DIM/2)
-        if (self.NDIM==2):
-            fig = plt.figure(1, (8., 8.))
-            plt.imshow(self.box,cmap=cmap)
-            plt.tight_layout()
-        elif (self.NDIM==3):
-            fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(8., 8.))
-            axes[0,0].imshow(self.box[:,n,:],cmap=cmap)
-            axes[0,1].imshow(self.box[:,int(1.1*n),:],cmap=cmap)
-            axes[1,0].imshow(self.box[n,:,:],cmap=cmap)
-            axes[1,1].imshow(self.box[:,:,n],cmap=cmap)
-            plt.tight_layout()
+        # save object in pickle file
+        filename='Field_R%i_xhII%.2f_N%i_%iD.pkl' %(self.radius,self.fillingfraction,self.DIM,self.NDIM)
+        with open(filename,'wb') as f: 
+            pickle.dump(self,f,pickle.HIGHEST_PROTOCOL) 
 
+        fig = plt.figure(1, (8., 8.))
+        if (self.NDIM==2):
+            plt.imshow(self.box,cmap=cmap)
+        elif (self.NDIM==3):
+            plt.imshow(self.box[:,:,self.DIM//2],cmap=cmap)
+        plt.tight_layout()
+        plt.tick_params(axis='both',which='both', bottom=False, left=False,labelbottom=False,labelleft=False)
         plt.savefig('Bubble_box_xhII%.2f_nooverlap=%s_radius=%i_N%i_%iD.png' %(np.mean(self.box),self.nooverlap,self.radius,self.DIM,self.NDIM))
 
 
