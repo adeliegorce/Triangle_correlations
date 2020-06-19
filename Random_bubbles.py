@@ -114,6 +114,24 @@ class RandomBubbles:
         self.summary()
 
 
+    def grow_bubbles(self,R):
+
+        if (R-self.radius<1):
+            raise Error('Targer radius smaller than current radius')
+
+        #grow bubbles one by one
+        for u,x in enumerate(self.bubbles):
+            # draws larger bubble around existing one
+            bmask = self.bubble_mask(x, R)
+            #add bubble to whole box
+            self.box=np.add(self.box,bmask).astype(np.bool)
+            self.box=self.box.astype(int)
+            sys.stdout.write('\r Growing bubbles... %i%% done' %(u/len(self.bubbles)*100))
+            sys.stdout.flush()
+
+        sys.stdout.write('\r Growing bubbles... 100% done\n')
+        self.summary(R)
+        
     def bubble_mask(self, x, R):
         #wrapper to handle different dimensionality
         if (self.NDIM == 2):
