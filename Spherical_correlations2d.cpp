@@ -5,7 +5,7 @@
 
 /*
  Executable file to compute the spherical correlation function
- as defined in Obreschkow et al., 2013, ApJ, 762:115
+ as defined in Gorce & Pritchard, 2019, MNRAS, 489, 1321–1337
  from files with real and imaginary parts of Fourier tranform
  of matter field in 2D box
  */
@@ -214,7 +214,7 @@ int main() {
     outfile << "# dim " << N << endl;
     outfile << "# r Re[s(r)] Im[s(r)] N_modes" <<endl;
 
-    vector<double> r=range(rmin,rmax,nbins);
+    vector<double> r=range(max(rmin,L/N),min(rmax,L*0.5),nbins);
     auto start = chrono::steady_clock::now();
     cout << " r / s(r) / Nmodes"  <<endl;
     for (int i=0; i<nbins; i++) {
