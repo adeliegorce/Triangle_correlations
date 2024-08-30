@@ -10,12 +10,12 @@ First generate a bubble field with `python` (for a periodic 2D field with 512x51
 
 ```
 from Random_bubbles import *
-cube=RandomBubbles(DIM=512, fillingfraction=0.05, radius=20, NDIM = 2, nooverlap = False, periodic=True) 
+cube=RandomBubbles(DIM=50, fillingfraction=0.05, radius=2, NDIM = 2, nooverlap = False, periodic=True) 
 RandomBubbles.write_ionisation_field(cube) #saves real field in a text file
 ```
 
 The output text file will be:
-   Field_11binary_bubbles_nooverlap=False_radius=20_xhII0.05_N512_2D.txt
+   Field_10binary_bubbles_nooverlap=False_radius=2_xhII0.05_N50_2D.txt
   
 Then modify the header file `SC.h` with the correct information: box side length, computation parallelised on 20 cores, range of correlation scales considered (in Mpc)...
 Compile
