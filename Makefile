@@ -11,6 +11,9 @@ CPPFLAGS= -I /opt/homebrew/include # -I/opt/homebrew/opt/libomp/include
 3d: Spherical_correlations3d.cpp 
 	$(CC) $(CPPFLAGS) -o ./SC_3d.o ./Spherical_correlations3d.cpp  $(LDFLAGS)
 
+2d_cross: Spherical_correlations2d.cpp 
+	$(CC) $(CPPFLAGS) -o ./CC_2d.o ./Cross_correlations2d.cpp  $(LDFLAGS) 
+
 clean:
 	rm -rf *.o
 	rm -rf *~
